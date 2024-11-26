@@ -6,24 +6,24 @@ import networkx as nx
 # Cada nó representa um usuário, e as arestas representam interações entre usuários, com pesos indicando a frequência das interações
 
 rede_social = {
-    'A': [('B', 4), ('C', 1), ('D', 7)],
-    'B': [('A', 4), ('E', 3), ('F', 6)],
-    'C': [('A', 1), ('D', 2), ('G', 5), ('Bot1', 12)],  # Bot1 with high interaction weight
-    'D': [('A', 7), ('C', 2), ('E', 3), ('H', 4)],
-    'E': [('B', 3), ('D', 3), ('F', 2), ('I', 6)],
-    'F': [('B', 6), ('E', 2), ('J', 3)],
-    'G': [('C', 5), ('H', 2), ('J', 4), ('Bot3', 11)],  # Bot3 with high interaction weight
-    'H': [('D', 4), ('G', 2), ('I', 1), ('Bot2', 15)],  # Bot2 with high interaction weight
-    'I': [('E', 6), ('H', 1), ('J', 5), ('Bot4', 13)],  # Bot4 with high interaction weight
-    'J': [('F', 3), ('G', 4), ('I', 5), ('Bot1', 10)],  # Connection to Bot1
-    'Bot1': [('C', 12), ('J', 10), ('Bot5', 9)],  # Bot1 interactions
-    'Bot2': [('H', 15), ('Bot6', 8)],  # Bot2 interactions
-    'Bot3': [('G', 11), ('Bot7', 14)],  # Bot3 interactions
-    'Bot4': [('I', 13), ('Bot8', 10)],  # Bot4 interactions
-    'Bot5': [('Bot1', 12), ('Bot6', 13)],  # Bot5 interactions
-    'Bot6': [('Bot2', 11), ('Bot5', 14)],  # Bot6 interactions
-    'Bot7': [('Bot3', 14)],  # Bot7 interactions
-    'Bot8': [('Bot4', 10)],  # Bot8 interactions
+    'A': [('B', 4), ('C', 1), ('D', 7), ('Bot1', 8)],  # Bot1 conectado diretamente a A
+    'B': [('A', 4), ('E', 3), ('F', 6), ('Bot2', 10)],  # Bot2 conectado diretamente a B
+    'C': [('A', 1), ('D', 2), ('G', 5)],  
+    'D': [('A', 7), ('C', 2), ('E', 3), ('H', 4), ('Bot3', 9)],  # Bot3 conectado a D
+    'E': [('B', 3), ('D', 3), ('F', 2), ('I', 6)],  
+    'F': [('B', 6), ('E', 2), ('J', 3), ('Bot4', 11)],  # Bot4 conectado a F
+    'G': [('C', 5), ('H', 2), ('J', 4)],  
+    'H': [('D', 4), ('G', 2), ('I', 1)],  
+    'I': [('E', 6), ('H', 1), ('J', 5)],  
+    'J': [('F', 3), ('G', 4), ('I', 5), ('Bot5', 13)],  # Bot5 conectado a J
+    'Bot1': [('A', 8), ('Bot6', 12)],  # Bot1 conectado à rede principal e outro bot
+    'Bot2': [('B', 10), ('Bot7', 14)],  # Bot2 conectado à rede principal e outro bot
+    'Bot3': [('D', 9), ('Bot8', 15)],  # Bot3 conectado à rede principal e outro bot
+    'Bot4': [('F', 11), ('Bot6', 10)],  # Bot4 conectado à rede principal e outro bot
+    'Bot5': [('J', 13), ('Bot7', 12)],  # Bot5 conectado à rede principal e outro bot
+    'Bot6': [('Bot1', 12), ('Bot4', 10)],  # Bot6 conectado entre bots
+    'Bot7': [('Bot2', 14), ('Bot5', 12)],  # Bot7 conectado entre bots
+    'Bot8': [('Bot3', 15)],  # Bot8 apenas conectado a Bot3
 }
 
 usuarios = list(rede_social.keys())
@@ -223,6 +223,52 @@ def floyd_warshall(rede_social, usuarios):
 
     return dist, next_vertice
 
+# Função do Algoritmo de Bellman-Ford
+def bellman_ford(rede_social, origem, destino):
+    start_time = time.time()
+    
+    # Inicialização das distâncias e predecessores
+    dist = {usuario: float('inf') for usuario in usuarios}
+    predecessor = {usuario: None for usuario in usuarios}
+    dist[origem] = 0
+    
+    # Relaxamento das arestas
+    for _ in range(len(usuarios) - 1):  # |V| - 1 iterações
+        for u in rede_social:
+            for v, peso in rede_social[u]:
+                if dist[u] + peso < dist[v]:
+                    dist[v] = dist[u] + peso
+                    predecessor[v] = u
+    
+    # Verificação de ciclos negativos
+    for u in rede_social:
+        for v, peso in rede_social[u]:
+            if dist[u] + peso < dist[v]:
+                print("A rede social contém ciclos negativos. O algoritmo de Bellman-Ford não pode ser aplicado corretamente.")
+                return [], {}
+    
+    # Reconstrução do caminho
+    caminho = []
+    atual = destino
+    while atual is not None:
+        caminho.append(atual)
+        atual = predecessor[atual]
+    caminho.reverse()
+    
+    end_time = time.time()
+    tempo_processamento = end_time - start_time
+    
+    if dist[destino] == float('inf'):
+        print(f"Não existe caminho de {origem} para {destino} usando o algoritmo de Bellman-Ford.")
+    else:
+        print(f"Caminho ótimo encontrado pelo algoritmo de Bellman-Ford de {origem} para {destino}:")
+        print(" -> ".join(caminho))
+        print(f"Custo total: {dist[destino]}")
+    print(f"Tempo de processamento do Bellman-Ford: {tempo_processamento:.6f} segundos\n")
+    
+    return caminho, dist
+
+
 def reconstruir_caminho(origem, destino, next_vertice):
     if next_vertice[origem][destino] is None:
         return None
@@ -325,10 +371,15 @@ def main():
     
     print("--- Algoritmo de Floyd-Warshall ---")
     caminhos_fw = executar_floyd_warshall(rede_social, origem, destino)
+
+    print("--- Algoritmo de Bellman-Ford ---")
+    caminho_bf, dist_bf = bellman_ford(rede_social, origem, destino)
+    if caminho_bf:
+        print(f"Caminho pelo Bellman-Ford: {' -> '.join(caminho_bf)} | Custo total: {dist_bf[destino]}")
     
     # Combinar todos os caminhos encontrados
-    todos_caminhos = caminhos_dfs + caminhos_bfs + caminhos_dijkstra + caminhos_fw
-    
+    todos_caminhos = caminhos_dfs + caminhos_bfs + caminhos_dijkstra + caminhos_fw + [caminho_bf] if caminho_bf else []
+
     print("\n--- Identificação de Possíveis Bots em Caminhos ---")
     possiveis_bots = identificar_bots_por_historico_em_caminhos(rede_social, todos_caminhos)
     if possiveis_bots:
