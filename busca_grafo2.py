@@ -2,9 +2,6 @@ import time
 import matplotlib.pyplot as plt
 import networkx as nx
 
-# Modelagem do grafo representando a rede social
-# Cada nó representa um usuário, e as arestas representam interações entre usuários, com pesos indicando a frequência das interações
-
 rede_social = {
     'A': [('B', 4), ('C', 1), ('D', 7), ('Bot1', 8)],  # Bot1 conectado diretamente a A
     'B': [('A', 4), ('E', 3), ('F', 6), ('Bot2', 10)],  # Bot2 conectado diretamente a B
@@ -26,9 +23,29 @@ rede_social = {
     'Bot8': [('Bot3', 15)],  # Bot8 apenas conectado a Bot3
 }
 
+# rede_social = {
+#     'A': [('B', 4), ('C', 1), ('D', 7), ('Bot1', 8)],  # Bot1 conectado diretamente a A
+#     'B': [('A', 4), ('E', 3), ('F', 6), ('Bot2', 10)],  # Bot2 conectado diretamente a B
+#     'C': [('A', 1), ('D', 2), ('G', 5)],  
+#     'D': [('A', 7), ('C', 2), ('E', 3), ('H', -4), ('Bot3', 9)],  # Bot3 conectado a D e aresta negativa para H
+#     'E': [('B', 3), ('D', 3), ('F', -2), ('I', 6)],  # Peso negativo entre E e F
+#     'F': [('B', 6), ('E', -2), ('J', 3), ('Bot4', 11)],  # Bot4 conectado a F
+#     'G': [('C', 5), ('H', 2), ('J', 4)],  
+#     'H': [('D', -4), ('G', 2), ('I', 1)],  
+#     'I': [('E', 6), ('H', 1), ('J', -5)],  # Peso negativo entre I e J
+#     'J': [('F', 3), ('G', 4), ('I', -5), ('Bot5', 13)],  # Bot5 conectado a J
+#     'Bot1': [('A', 8), ('Bot6', 12)],  # Bot1 conectado à rede principal e outro bot
+#     'Bot2': [('B', 10), ('Bot7', 14)],  # Bot2 conectado à rede principal e outro bot
+#     'Bot3': [('D', 9), ('Bot8', 15)],  # Bot3 conectado à rede principal e outro bot
+#     'Bot4': [('F', 11), ('Bot6', 10)],  # Bot4 conectado à rede principal e outro bot
+#     'Bot5': [('J', 13), ('Bot7', 12)],  # Bot5 conectado à rede principal e outro bot
+#     'Bot6': [('Bot1', 12), ('Bot4', 10)],  # Bot6 conectado entre bots
+#     'Bot7': [('Bot2', 14), ('Bot5', 12)],  # Bot7 conectado entre bots
+#     'Bot8': [('Bot3', 15)],  # Bot8 apenas conectado a Bot3
+# }
+
 usuarios = list(rede_social.keys())
 
-# Função para visualizar a lista de adjacências como um grafo
 def visualizar_grafo(rede_social, possiveis_bots, origem, destino):
     G = nx.DiGraph()
     
@@ -42,13 +59,13 @@ def visualizar_grafo(rede_social, possiveis_bots, origem, destino):
     node_colors = []
     for node in G.nodes():
         if node == origem:
-            node_colors.append("green")       # Origem em verde
+            node_colors.append("green")       # origem em verde
         elif node == destino:
-            node_colors.append("orange")      # Destino em laranja
+            node_colors.append("orange")      # destino em laranja
         elif node in possiveis_bots:
-            node_colors.append("red")         # Possíveis bots em vermelho
+            node_colors.append("red")         # possíveis bots em vermelho
         else:
-            node_colors.append("skyblue")     # Demais nós em azul claro
+            node_colors.append("skyblue")     # demais nós em azul claro
     
     nx.draw_networkx(G, pos, with_labels=True, node_size=400, node_color=node_colors, font_size=8, font_weight="bold", arrows=True)
     labels = nx.get_edge_attributes(G, 'weight')
@@ -56,7 +73,7 @@ def visualizar_grafo(rede_social, possiveis_bots, origem, destino):
     plt.title("Rede Social - Representação Visual do Grafo")
     plt.show()
 
-# Função de Busca em Profundidade (DFS)
+# função de busca em profundidade (DFS)
 def dfs(rede_social, origem, destino):
     start_time = time.time()
     caminhos = []
@@ -84,7 +101,7 @@ def dfs(rede_social, origem, destino):
     print(f"Tempo de processamento do DFS: {tempo_processamento:.6f} segundos\n")
     return caminhos
 
-# Função de Busca em Largura (BFS)
+# função de busca em largura (BFS)
 def bfs(rede_social, origem, destino):
     start_time = time.time()
     caminhos = []
@@ -117,10 +134,9 @@ def bfs(rede_social, origem, destino):
     print(f"Tempo de processamento do BFS: {tempo_processamento:.6f} segundos\n")
     return caminhos
 
-# Função do Algoritmo de Dijkstra
+# função do algoritmo de dijkstra
 def dijkstra(rede_social, origem, destino):
     start_time = time.time()
-    # Verificar se existem pesos negativos no grafo
     for arestas in rede_social.values():
         for (_, peso) in arestas:
             if peso < 0:
@@ -162,7 +178,6 @@ def dijkstra_all_paths(rede_social, origem, destino):
     import heapq
     start_time = time.time()
     
-    # Inicialização
     queue = []
     heapq.heappush(queue, (0, origem, [origem]))
     min_cost = None
@@ -171,7 +186,6 @@ def dijkstra_all_paths(rede_social, origem, destino):
     while queue:
         (cost, node, path) = heapq.heappop(queue)
         
-        # Se já encontramos um caminho com custo menor, ignoramos caminhos com custo maior
         if min_cost is not None and cost > min_cost:
             break
         
@@ -182,7 +196,7 @@ def dijkstra_all_paths(rede_social, origem, destino):
             continue
         
         for neighbor, weight in rede_social.get(node, []):
-            if neighbor not in path:  # Evitar ciclos
+            if neighbor not in path: 
                 heapq.heappush(queue, (cost + weight, neighbor, path + [neighbor]))
     
     end_time = time.time()
@@ -197,7 +211,7 @@ def dijkstra_all_paths(rede_social, origem, destino):
     print(f"Tempo de processamento do Dijkstra: {tempo_processamento:.6f} segundos\n")
     return [path for cost, path in paths]
 
-# Funções do Algoritmo de Floyd-Warshall
+# funções do algoritmo de floyd-warshall
 def floyd_warshall(rede_social, usuarios):
     dist = {u: {v: float('inf') for v in usuarios} for u in usuarios}
     next_vertice = {u: {v: None for v in usuarios} for u in usuarios}
@@ -223,31 +237,27 @@ def floyd_warshall(rede_social, usuarios):
 
     return dist, next_vertice
 
-# Função do Algoritmo de Bellman-Ford
+# função do algoritmo de bellman-ford
 def bellman_ford(rede_social, origem, destino):
     start_time = time.time()
     
-    # Inicialização das distâncias e predecessores
     dist = {usuario: float('inf') for usuario in usuarios}
     predecessor = {usuario: None for usuario in usuarios}
     dist[origem] = 0
     
-    # Relaxamento das arestas
-    for _ in range(len(usuarios) - 1):  # |V| - 1 iterações
+    for _ in range(len(usuarios) - 1):
         for u in rede_social:
             for v, peso in rede_social[u]:
                 if dist[u] + peso < dist[v]:
                     dist[v] = dist[u] + peso
                     predecessor[v] = u
     
-    # Verificação de ciclos negativos
     for u in rede_social:
         for v, peso in rede_social[u]:
             if dist[u] + peso < dist[v]:
                 print("A rede social contém ciclos negativos. O algoritmo de Bellman-Ford não pode ser aplicado corretamente.")
                 return [], {}
     
-    # Reconstrução do caminho
     caminho = []
     atual = destino
     while atual is not None:
@@ -297,26 +307,25 @@ def executar_floyd_warshall(rede_social, origem, destino):
     print(f"Tempo de processamento do Floyd-Warshall: {tempo_processamento:.6f} segundos\n")
     return [caminho] if caminho else []
 
-# Função para identificar possíveis bots
-def identificar_bots(rede_social, caminhos, bots_conhecidos):
-    possiveis_bots = []
-    usuarios_no_caminho = set(usuario for caminho in caminhos for usuario in caminho)
-    for usuario in usuarios_no_caminho:
-        num_arestas = len(rede_social[usuario])
-        motivos = []
-        if num_arestas > 5:
-            motivos.append("muitas conexões")
-        for (vizinho, peso) in rede_social[usuario]:
-            if vizinho in bots_conhecidos:
-                continue  # Ignora interações com bots conhecidos
-            if peso > 10:
-                motivos.append("interações com peso muito alto")
-                break
-        if motivos:
-            possiveis_bots.append((usuario, motivos))
-    return possiveis_bots
+# def identificar_bots(rede_social, caminhos, bots_conhecidos):
+#     possiveis_bots = []
+#     usuarios_no_caminho = set(usuario for caminho in caminhos for usuario in caminho)
+#     for usuario in usuarios_no_caminho:
+#         num_arestas = len(rede_social[usuario])
+#         motivos = []
+#         if num_arestas > 5:
+#             motivos.append("muitas conexões")
+#         for (vizinho, peso) in rede_social[usuario]:
+#             if vizinho in bots_conhecidos:
+#                 continue 
+#             if peso > 10:
+#                 motivos.append("interações com peso muito alto")
+#                 break
+#         if motivos:
+#             possiveis_bots.append((usuario, motivos))
+#     return possiveis_bots
 
-# Função para identificar possíveis bots com análise histórica nos caminhos
+# função para identificar possíveis bots com análise histórica nos caminhos
 def identificar_bots_por_historico_em_caminhos(rede_social, caminhos):
     possiveis_bots = []
     usuarios_no_caminho = set(usuario for caminho in caminhos for usuario in caminho)
@@ -327,21 +336,21 @@ def identificar_bots_por_historico_em_caminhos(rede_social, caminhos):
         pesos_interacoes = [peso for _, peso in conexoes]
         motivos = []
         
-        # Critério 1: Número excessivo de conexões
+        # critério 1: número excessivo de conexões
         if num_arestas > 6:
             motivos.append("muitas conexões")
         
-        # Critério 2: Média de peso das interações anormalmente alta
+        # critério 2: média de peso das interações anormalmente alta
         media_peso = sum(pesos_interacoes) / num_arestas if num_arestas > 0 else 0
         if media_peso > 8:
             motivos.append("interações com média de peso alta")
         
-        # Critério 3: Discrepância entre conexões fortes e fracas
+        # critério 3: discrepância entre conexões fortes e fracas
         interacoes_fortes = sum(1 for peso in pesos_interacoes if peso > 10)
-        if interacoes_fortes / num_arestas > 0.5:  # Mais da metade são interações fortes
+        if interacoes_fortes / num_arestas > 0.5:
             motivos.append("alta proporção de interações fortes")
         
-        # Critério 4: Presença em sub-redes suspeitas (muitos bots conhecidos)
+        # critério 4: presença em sub-redes suspeitas (muitos bots conhecidos)
         vizinhos_bots = sum(1 for vizinho, _ in conexoes if "Bot" in vizinho)
         if vizinhos_bots > 2:
             motivos.append("muitos vizinhos suspeitos")
@@ -351,7 +360,6 @@ def identificar_bots_por_historico_em_caminhos(rede_social, caminhos):
     
     return possiveis_bots
 
-# Substituir a chamada de identificar_bots no main
 def main():
     origem = input("Digite o usuário de origem: ").strip()
     destino = input("Digite o usuário de destino: ").strip()
@@ -377,7 +385,6 @@ def main():
     if caminho_bf:
         print(f"Caminho pelo Bellman-Ford: {' -> '.join(caminho_bf)} | Custo total: {dist_bf[destino]}")
     
-    # Combinar todos os caminhos encontrados
     todos_caminhos = caminhos_dfs + caminhos_bfs + caminhos_dijkstra + caminhos_fw + [caminho_bf] if caminho_bf else []
 
     print("\n--- Identificação de Possíveis Bots em Caminhos ---")
